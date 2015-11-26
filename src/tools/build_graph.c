@@ -105,21 +105,29 @@ size_t build_graph_from_str_mt(dBGraph *db_graph, size_t colour,
   dBNode prev, curr;
   size_t i, num_novel_kmers = 0;
   size_t edge_col = db_graph->num_edge_cols == 1 ? 0 : colour;
-  bool found;
+  // bool found;
 
   bkmer = binary_kmer_from_str(seq, kmer_size);
-  prev = db_graph_find_or_add_node_mt(db_graph, bkmer, &found);
-  db_graph_update_node_mt(db_graph, prev, colour);
-  num_novel_kmers += !found;
+    
+  prev = db_graph_find(db_graph, bkmer);
+  if(prev.key != HASH_NOT_FOUND) {      
+    db_graph_update_node_mt(db_graph, prev, colour);
+  }
+  // num_novel_kmers += !found;
 
   for(i = kmer_size; i < len; i++)
   {
     nuc = dna_char_to_nuc(seq[i]);
     bkmer = binary_kmer_left_shift_add(bkmer, kmer_size, nuc);
-    curr = db_graph_find_or_add_node_mt(db_graph, bkmer, &found);
-    db_graph_update_node_mt(db_graph, curr, colour);
-    db_graph_add_edge_mt(db_graph, edge_col, prev, curr);
-    num_novel_kmers += !found;
+    curr = db_graph_find(db_graph, bkmer);
+    if(curr.key != HASH_NOT_FOUND) {
+      db_graph_update_node_mt(db_graph, curr, colour);
+      if (prev.key != HASH_NOT_FOUND){
+        db_graph_add_edge_mt(db_graph, edge_col, prev, curr);
+      }      
+    }
+
+    // num_novel_kmers += !found;
     prev = curr;
   }
 

@@ -100,7 +100,7 @@ void db_graph_dealloc(dBGraph *db_graph)
 
 void db_graph_update_node_mt(dBGraph *db_graph, dBNode node, Colour col)
 {
-  if(db_graph->node_in_cols != NULL) db_node_set_col_mt(db_graph, node.key, col);
+  // if(db_graph->node_in_cols != NULL) db_node_set_col_mt(db_graph, node.key, col);
   if(db_graph->col_covgs != NULL) db_node_increment_coverage_mt(db_graph, node.key, col);
 }
 

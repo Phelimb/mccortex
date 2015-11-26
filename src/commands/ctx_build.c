@@ -293,27 +293,47 @@ int ctx_build(int argc, char **argv)
 
   status("Writing %zu colour graph to %s\n", output_colours, futil_outpath_str(out_path));
 
+
+
+  //
+  // Open graph files
+  //
+  const size_t num_gfiles = 1;
+  char **graph_paths = (char**) malloc((num_gfiles+1)*sizeof(char*));
+  graph_paths[0] = "/home/phelimb/git/atlas-core/panel.ctx";
+  ctx_assert(num_gfiles > 0);
+
+  GraphFileReader *gfiles = ctx_calloc(num_gfiles, sizeof(GraphFileReader));
+  size_t ncols, ctx_max_kmers = 0, ctx_sum_kmers = 0;
+
+  ncols = graph_files_open(graph_paths, gfiles, num_gfiles,
+                           &ctx_max_kmers, &ctx_sum_kmers);
+
   // Create db_graph
   dBGraph db_graph;
   int alloc_flags = DBG_ALLOC_EDGES | DBG_ALLOC_COVGS | DBG_ALLOC_BKTLOCKS |
                     (remove_pcr_used ? DBG_ALLOC_READSTRT : 0);
 
-  db_graph_alloc(&db_graph, kmer_size, output_colours, output_colours,
+  db_graph_alloc(&db_graph, gfiles[0].hdr.kmer_size,
+                 output_colours, output_colours,
                  kmers_in_hash, alloc_flags);
+  //
+  // Load graphs
+  //
+  GraphLoadingPrefs gprefs = graph_loading_prefs(&db_graph);
+  gprefs.empty_colours = true;
+
+  for(i = 0; i < num_gfiles; i++) {
+    graph_load(&gfiles[i], gprefs, NULL);
+    graph_file_close(&gfiles[i]);
+    gprefs.empty_colours = false;
+  }
+  ctx_free(gfiles);
+  // Resets coverages
+  const size_t capacity = db_graph.ht.capacity;
+  memset(db_graph.col_covgs, 0, capacity * sizeof(Covg));
 
   hash_table_print_stats(&db_graph.ht);
-
-  // Load graphs
-  if(gfilebuf.len > 0)
-  {
-    GraphLoadingPrefs gprefs = graph_loading_prefs(&db_graph);
-
-    for(i = 0; i < gfilebuf.len; i++) {
-      graph_load(&gfilebuf.b[i], gprefs, NULL);
-      hash_table_print_stats(&db_graph.ht);
-      graph_file_close(&gfilebuf.b[i]);
-    }
-  }
 
   // Set sample names using seq_colours array
   for(i = 0; i < ncolours; i++) {
