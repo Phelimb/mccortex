@@ -6,6 +6,7 @@
 #include "db_node.h"
 #include "seq_reader.h"
 #include "graphs_load.h"
+#include "carrays/carrays.h" // gca_median()
 
 const char coverage_usage[] =
 "usage: "CMD" coverage [options] <in.ctx> [in2.ctx ..]\n"
@@ -144,26 +145,26 @@ static inline void print_read_covg(const dBGraph *db_graph, const read_t *r,
   }
 
   // Print sequence
-  fprintf(fout, ">%s\n%s\n", r->name.b, r->seq.b);
-
+  // fprintf(fout, ">%s\n%s\n", r->name.b, r->seq.b);
+  float num_non_zero;
+  int median_covg;
+  float mean_covg_non_zero;
   for(col = 0; col < ncols; col++)
   {
-    if(print_edges) {
-      fprintf(fout, ">%s_c%zu_edges\n", r->name.b, col);
-      _print_edges(edgebuf->b, col, ncols, klen, fout);
-    }
-
-    if(print_edge_degrees) {
-      fprintf(fout, ">%s_c%zu_degree\n", r->name.b, col);
-      _print_edge_degrees(edgebuf->b, col, ncols, klen, fout);
-    }
-
     // Print coverages
-    fprintf(fout, ">%s_c%zu_covgs\n", r->name.b, col);
     if(klen > 0) {
-      fprintf(fout, "%2u", covgbuf->b[col]);
-      for(i = 1; i < klen; i++)
-        fprintf(fout, " %2u", covgbuf->b[i*ncols+col]);
+      num_non_zero = 0.0;
+      mean_covg_non_zero = 0.0;
+      for(i = 1; i < klen; i++){
+        if (covgbuf->b[i*ncols+col] > 0){
+          num_non_zero = num_non_zero + 1.0;
+          if (i > 2 && i < (klen-1)){
+            mean_covg_non_zero = mean_covg_non_zero + covgbuf->b[i*ncols+col];
+          }
+        }      
+      }      
+      median_covg = gca_median_int(covgbuf->b, covgbuf->len);         
+     fprintf(fout, "%s_c%zu\t%i\t%f\t%f", r->name.b, col, median_covg, num_non_zero / (klen - 1), mean_covg_non_zero/ (klen -1));        
     }
     fputc('\n', fout);
   }
