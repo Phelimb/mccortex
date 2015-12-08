@@ -36,6 +36,7 @@ int ctx_vcfgeno(int argc, char **argv);
 // Experiments
 int ctx_exp_abc(int argc, char **argv);
 int ctx_exp_hashtest(int argc, char **argv);
+int ctx_geno(int argc, char **argv);
 
 extern const char build_usage[];
 extern const char sort_usage[];
@@ -69,5 +70,6 @@ extern const char vcfgeno_usage[];
 // Experiments
 extern const char exp_abc_usage[];
 extern const char exp_hashtest_usage[];
+extern const char geno_usage[];
 
 #endif /* COMMANDS_H_ */

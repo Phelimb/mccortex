@@ -176,7 +176,12 @@ CtxCmd cmdobjs[] = {
   .cmd = "hashtest", .func = ctx_exp_hashtest, .hide = true,
   .blurb = "test hash table speed",
   .usage = exp_hashtest_usage
-}
+},
+{
+  .cmd = "geno", .func = ctx_geno, .hide = true,
+  .blurb = "Summary coverages straight from sequence data",
+  .usage = geno_usage
+},
 };
 
 

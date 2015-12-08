@@ -1,7 +1,7 @@
 #include "global.h"
 #include "commands.h"
-#include "file_util.h"
 #include "util.h"
+#include "file_util.h"
 #include "db_graph.h"
 #include "db_node.h"
 #include "seq_reader.h"
