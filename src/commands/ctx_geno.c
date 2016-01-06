@@ -40,6 +40,7 @@ const char geno_usage[] =
 "  -I, --intersect <i.ctx>  Only load kmers that appear in i.ctx. Multiple -I\n"
 "                           graphs will be merged, not intersected. Treated as\n"
 "                           single colour graphs.\n"
+"  -o, --out <out.txt>  Save output [default: STDOUT]\n"
 "\n"
 "  Note: Argument must come before input file\n"
 "  PCR duplicate removal works by ignoring read (pairs) if (both) reads\n"
@@ -74,6 +75,7 @@ static struct option longopts[] =
   {"keep-pcr",     no_argument,       NULL, 'P'},
   {"graph",        required_argument, NULL, 'g'},
   {"intersect",    required_argument, NULL, 'I'},
+  {"out",          required_argument, NULL, 'o'},  
   {NULL, 0, NULL, 0}
 };
 
@@ -190,26 +192,34 @@ static inline void print_read_covg(const dBGraph *db_graph, const read_t *r,
       }
     }
   }
-  float num_non_zero;
-  int covg[klen];
-  // Print sequence
-  for(col = 0; col < ncols; col++)
-  {
-    // Print coverages
-    if(klen > 0) {
-      num_non_zero = 0.0;
-      for(i = 1; i < klen; i++){
-        covg[i] = covgbuf->b[i*ncols+col];
-        if (covgbuf->b[i*ncols+col] > 0){
-          num_non_zero = num_non_zero + 1.0;
-        }              
+  if (klen > 1){
+    float num_non_zero;
+    int covg[klen];
+    uint32_t median_covg;
+    // Print sequence
+    for(col = 0; col < ncols; col++)
+    {
+      // Print coverages
+      if(klen > 0) {
+        num_non_zero = 0.0;
+        for(i = 1; i < klen; i++){
+          covg[i] = covgbuf->b[i*ncols+col];
+          if (covgbuf->b[i*ncols+col] > 0){
+            num_non_zero = num_non_zero + 1.0;
+          }              
+        }
+        median_covg = gca_median_uint32(covg, klen);
+        fprintf(fout, "%s\t%zu\t%zu\t%f", r->name.b, col,
+                median_covg, num_non_zero / (klen-1));        
       }
-      int median_covg = gca_median_int(covg, klen);
-      fprintf(fout, "%s_c%zu\t%2u\t%f", r->name.b, col,
-              median_covg, num_non_zero / (klen - 1));        
-    }
-    fputc('\n', fout);
+      fputc('\n', fout);
+    }    
   }
+  else{
+      fprintf(fout, "%s\t%zu\t0\t0.0", r->name.b, col); 
+      fputc('\n', fout);                  
+  }
+
 }
 
 SeqFilePtrBuffer sfilebuf;
