@@ -12,7 +12,7 @@
 #include "carrays/carrays.h" // gca_median()
 
 const char geno_usage[] =
-"usage: "CMD" build [options] <out.ctx>\n"
+"usage: "CMD" geno [options] <out.ctx>\n"
 "\n"
 "  Genotype  \n"
 "\n"
@@ -40,6 +40,7 @@ const char geno_usage[] =
 "  -I, --intersect <i.ctx>  Only load kmers that appear in i.ctx. Multiple -I\n"
 "                           graphs will be merged, not intersected. Treated as\n"
 "                           single colour graphs.\n"
+"  -o, --out <out.txt>  Save output [default: STDOUT]\n"
 "\n"
 "  Note: Argument must come before input file\n"
 "  PCR duplicate removal works by ignoring read (pairs) if (both) reads\n"
