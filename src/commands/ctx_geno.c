@@ -12,7 +12,7 @@
 #include "carrays/carrays.h" // gca_median()
 
 const char geno_usage[] =
-"usage: "CMD" build [options] <out.ctx>\n"
+"usage: "CMD" geno [options] <out.ctx>\n"
 "\n"
 "  Genotype  \n"
 "\n"
@@ -313,7 +313,7 @@ static void parse_args(int argc, char **argv)
       case ':': /* BADARG */
       case '?': /* BADCH getopt_long has already printed error */
         // cmd_print_usage(NULL);
-        die("`"CMD" build -h` for help. Bad option: %s", argv[optind-1]);
+        die("`"CMD" geno -h` for help. Bad option: %s", argv[optind-1]);
       default: die("Bad option: %s", cmd);
     }
   }
