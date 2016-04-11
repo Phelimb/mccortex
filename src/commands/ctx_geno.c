@@ -331,7 +331,7 @@ static void parse_args(int argc, char **argv)
   out_path = argv[optind];
   status("Saving graph to: %s", futil_outpath_str(out_path));
 
-  if(snamebuf.len == 0) cmd_print_usage("No inputs given");
+  // if(snamebuf.len == 0) cmd_print_usage("No inputs given");
 
   if(pref_unused) cmd_print_usage("Arguments not given BEFORE sequence file");
 
@@ -437,7 +437,10 @@ int ctx_geno(int argc, char **argv)
   futil_create_output(out_path);
 
   status("Writing %zu colour graph to %s\n", output_colours, futil_outpath_str(out_path));
-
+  // TODO - fix this hack
+  if (output_colours == 0){
+    output_colours = 1;
+  }
   // Create db_graph
   dBGraph db_graph;
   int alloc_flags = DBG_ALLOC_EDGES | DBG_ALLOC_COVGS | DBG_ALLOC_BKTLOCKS |
