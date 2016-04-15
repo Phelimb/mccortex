@@ -12,6 +12,10 @@ const char server_usage[] =
 "usage: "CMD" server [options] <in.ctx> [in2.ctx ...]\n"
 "\n"
 "  Interactively query the graph. Responds to STDOUT with JSON.\n"
+"  Commands are:\n"
+"  * 'info'     - print graph header\n"
+"  * 'random'   - print a random kmer\n"
+"  * 'ACACCAA'  - print information for the given kmer\n"
 "\n"
 "  -h, --help            This help message\n"
 "  -q, --quiet           Silence status output normally printed to STDERR\n"
@@ -59,11 +63,11 @@ static inline void kmer_response(StrBuf *resp, dBNode node, const char *keystr,
 
   // Edges
   Edges edges = db_node_get_edges_union(db_graph, node.key);
-  char edgesstr[9], left[5], right[5], *l, *r;
+  char edgesstr[9], left[5] = {0}, right[5] = {0}, *l = left, *r = right;
   db_node_get_edges_str(edges, edgesstr);
-  for(l = left, i = 0; i < 4; i++)
+  for(i = 0; i < 4; i++)
     if(edgesstr[i] != '.') { *l = toupper(edgesstr[i]); *(++l) = '\0'; }
-  for(r = right, i = 4; i < 8; i++)
+  for(i = 4; i < 8; i++)
     if(edgesstr[i] != '.') { *r = edgesstr[i]; *(++r) = '\0'; }
 
   strbuf_append_str(resp, "\"left\": \"");
@@ -367,8 +371,11 @@ int ctx_server(int argc, char **argv)
   bool success;
 
   // Read from input
-  while(futil_fcheck(strbuf_reset_readline(&line, stdin), stdin, "STDIN") > 0)
+  while(1)
   {
+    fprintf(stdout, "> "); fflush(stdout);
+    if(futil_fcheck(strbuf_reset_readline(&line, stdin), stdin, "STDIN") == 0)
+      break;
     strbuf_chomp(&line);
     if(strcmp(line.b,"q") == 0) { break; }
     else if(strcmp(line.b,"info") == 0) {

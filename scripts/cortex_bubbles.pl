@@ -16,16 +16,15 @@ sub print_usage
   for my $err (@_) { print STDERR "Error: $err\n"; }
   
   print STDERR "" .
-"Usage: ./cortex_bubbles.pl in.txt\n";
+"Usage: $0 <bub.gz>\n";
 
   exit(-1);
 }
 
 if(@ARGV > 1) { print_usage(); }
-my $file = $ARGV[0];
-if(!defined($file)) { $file = "-"; }
+my ($file) = (@ARGV, "-");
 my $fh;
-open($fh, $file) or die("Cannot read file $file");
+open($fh, "gzip -fcd $file |") or die("Cannot read file $file: $!");
 
 my $cb = new CortexBubbles($fh);
 my ($seq5p, $seq3p, $branches, $flank5p_nkmers, $flank3p_nkmers, $branchlens, $callid);
