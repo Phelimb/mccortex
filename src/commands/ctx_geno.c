@@ -197,6 +197,7 @@ static inline void print_read_covg(const dBGraph *db_graph, const read_t *r,
     int covg[klen];
     uint32_t median_covg;
     uint32_t min_covg = 1000;
+    int kmer_count=0;
     // Print sequence
     for(col = 0; col < ncols; col++)
     {
@@ -205,6 +206,7 @@ static inline void print_read_covg(const dBGraph *db_graph, const read_t *r,
         num_non_zero = 0.0;
         for(i = 1; i < klen; i++){
           covg[i] = covgbuf->b[i*ncols+col];
+          kmer_count=kmer_count+covgbuf->b[i*ncols+col];
           if (covgbuf->b[i*ncols+col] > 0){
             num_non_zero = num_non_zero + 1.0;
             min_covg = MIN2(covg[i], min_covg);
@@ -214,14 +216,14 @@ static inline void print_read_covg(const dBGraph *db_graph, const read_t *r,
             min_covg = 0;
         }
         median_covg = gca_median_uint32(covg, klen);
-        fprintf(fout, "%s\t%zu\t%zu\t%zu\t%f", r->name.b, col,
-                median_covg, min_covg, num_non_zero / (klen-1));        
+        fprintf(fout, "%s\t%zu\t%zu\t%zu\t%f\t%i", r->name.b, col,
+                median_covg, min_covg, num_non_zero / (klen-1), kmer_count);        
       }
       fputc('\n', fout);
     }    
   }
   else{
-      fprintf(fout, "%s\t%zu\t0\t0.0", r->name.b, col); 
+      fprintf(fout, "%s\t%zu\t0\t0.0\t0", r->name.b, col); 
       fputc('\n', fout);                  
   }
 
