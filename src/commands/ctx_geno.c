@@ -164,7 +164,7 @@ static inline void print_read_covg(const dBGraph *db_graph, const read_t *r,
     memset(edgebuf->b, 0, ncols * klen * sizeof(Edges));
   }
 
-  size_t i, j, col, search_start = 0;
+  size_t i, j, col = 0, search_start = 0;
   size_t contig_start, contig_end;
   BinaryKmer bkmer;
   Nucleotide nuc;
@@ -194,16 +194,17 @@ static inline void print_read_covg(const dBGraph *db_graph, const read_t *r,
   }
   if (klen > 1){
     float num_non_zero;
-    int covg[klen];
+    uint32_t covg[klen];
     uint32_t median_covg;
     uint32_t min_covg = 1000;
-    int kmer_count=0;
+    uint32_t kmer_count = 0;
     // Print sequence
     for(col = 0; col < ncols; col++)
     {
       // Print coverages
       if(klen > 0) {
         num_non_zero = 0.0;
+        covg[0] = 0;
         for(i = 1; i < klen; i++){
           covg[i] = covgbuf->b[i*ncols+col];
           kmer_count=kmer_count+covgbuf->b[i*ncols+col];
@@ -216,8 +217,13 @@ static inline void print_read_covg(const dBGraph *db_graph, const read_t *r,
             min_covg = 0;
         }
         median_covg = gca_median_uint32(covg, klen);
-        fprintf(fout, "%s\t%zu\t%zu\t%zu\t%f\t%i", r->name.b, col,
-                median_covg, min_covg, num_non_zero / (klen-1), kmer_count);        
+        fprintf(fout, "%s" "\t%zu" "\t%" PRIu32 "\t%" PRIu32 "\t%f" "\t%" PRIu32,
+                r->name.b,
+                col,
+                median_covg,
+                min_covg,
+                num_non_zero / (klen-1),
+                kmer_count);        
       }
       fputc('\n', fout);
     }    
