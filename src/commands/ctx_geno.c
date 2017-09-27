@@ -217,17 +217,13 @@ static inline void print_read_covg(const dBGraph *db_graph, const read_t *r,
             min_covg = 0;
         }
         median_covg = gca_median_uint32(covg, klen);
-        //fprintf(fout, "%s\t%zu\t%zu\t%zu\t%f\t%i", r->name.b, col,
-        //        median_covg, min_covg, num_non_zero / (klen-1), kmer_count);
         fprintf(fout, "%s" "\t%zu" "\t%" PRIu32 "\t%" PRIu32 "\t%f" "\t%" PRIu32,
                 r->name.b,
                 col,
                 median_covg,
                 min_covg,
                 num_non_zero / (klen-1),
-                kmer_count);
-        //fprintf(fout, "%s\t%zu\t%zu     \t%zu\t%f\t%i", r->name.b, col,
-        //        (uint32_t) 42, min_covg, num_non_zero / (klen-1), kmer_count);        
+                kmer_count);        
       }
       fputc('\n', fout);
     }    
