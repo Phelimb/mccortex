@@ -236,6 +236,7 @@ static inline void print_read_covg(const dBGraph *db_graph, const read_t *r,
 }
 
 SeqFilePtrBuffer sfilebuf;
+SeqFilePtrBuffer sfilebuf_read_total_count;
 
 static void parse_args(int argc, char **argv)
 {
@@ -247,8 +248,10 @@ static void parse_args(int argc, char **argv)
   int intocolour = -1;
   GraphFileReader tmp_gfile;
   seq_file_ptr_buf_alloc(&sfilebuf, 16);
+  seq_file_ptr_buf_alloc(&sfilebuf_read_total_count, 16);
 
   seq_file_t *tmp_sfile;
+  seq_file_t *tmp_sfile_read_total_count;
 
 
   // Arg parsing
@@ -272,6 +275,10 @@ static void parse_args(int argc, char **argv)
         if((tmp_sfile = seq_open(optarg)) == NULL)
           die("Cannot read --seq file %s", optarg);
         seq_file_ptr_buf_add(&sfilebuf, tmp_sfile);
+
+        tmp_sfile_read_total_count = seq_open(optarg);
+        seq_file_ptr_buf_add(&sfilebuf_read_total_count, tmp_sfile_read_total_count);
+
         break;
       case 's':
         intocolour++;
@@ -539,6 +546,27 @@ int ctx_geno(int argc, char **argv)
     build_graph_task_print_stats(&tasks[i]);
     build_graph_task_destroy(&tasks[i]);
   }
+
+  read_t read_total_count;
+  seq_read_alloc(&read_total_count);
+
+  status("Reading coverage...");
+  
+  // Calculate total number of reads
+  size_t total_num_reads = 0;
+  for(i = 0; i < sfilebuf_read_total_count.len; i++) {
+    while(seq_read_primary(sfilebuf_read_total_count.b[i], &read_total_count) > 0) {
+      total_num_reads++;
+    }
+  }
+  char total_num_reads_str[50];
+  ulong_to_str(total_num_reads, total_num_reads_str);
+  status("Printing graph coverage. Total number of reads: %s",
+         total_num_reads_str);
+
+  seq_read_dealloc(&read_total_count);
+  seq_file_ptr_buf_dealloc(&sfilebuf_read_total_count);
+
   //
   // Open output file for coverage
   //
@@ -553,21 +581,27 @@ int ctx_geno(int argc, char **argv)
 
   read_t r;
   seq_read_alloc(&r);
-
-  status("Reading coverage...");
-  size_t nreads = 0;
-
+  
   // Deal with one read at a time
+  size_t read_counter = 0;
   for(i = 0; i < sfilebuf.len; i++) {
     while(seq_read_primary(sfilebuf.b[i], &r) > 0) {
       print_read_covg(&db_graph, &r, &covgbuf, &edgebuf, fout);
-      nreads++;
+      
+      if (read_counter % 10000 == 0) {
+        char read_counter_str[50];
+        ulong_to_str(read_counter, read_counter_str);
+        status("Progress: %s/%s", read_counter_str, total_num_reads_str);
+      }
+      
+      read_counter++;
     }
     seq_close(sfilebuf.b[i]);
   }
 
-  char nstr[50];
-  status("Printed graph coverage for %s reads", ulong_to_str(nreads, nstr));
+  char read_counter_str[50];
+  ulong_to_str(read_counter, read_counter_str);
+  status("Progress: %s/%s", read_counter_str, total_num_reads_str);
 
   seq_read_dealloc(&r);
   covg_buf_dealloc(&covgbuf);
